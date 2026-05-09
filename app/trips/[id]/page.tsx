@@ -8,8 +8,11 @@ type ScheduleDay = { day: number; items: ScheduleItem[] }
 type SearchResult = { id: string; name: string; type: string; location: string; address: string }
 
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   interface Window { AMap: any }
 }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AMapInstance = any
 
 const TYPE_COLOR: Record<string, string> = {
   "景点": "bg-blue-100 text-blue-700",
@@ -26,9 +29,9 @@ export default function TripDetailPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
   const mapRef = useRef<HTMLDivElement>(null)
-  const amapRef = useRef<any>(null)
-  const markersRef = useRef<any[]>([])
-  const polylineRef = useRef<any>(null)
+  const amapRef = useRef<AMapInstance | null>(null)
+  const markersRef = useRef<AMapInstance[]>([])
+  const polylineRef = useRef<AMapInstance | null>(null)
 
   const [pois, setPois] = useState<Poi[]>([])
   const [schedule, setSchedule] = useState<ScheduleDay[]>([])
@@ -79,7 +82,7 @@ export default function TripDetailPage() {
       else r.json().then(d => setPois(d.pois || []))
     })
     fetch("/api/trips").then(r => r.json()).then(d => {
-      const trip = d.trips?.find((t: any) => t.id === id)
+      const trip = d.trips?.find((t: { id: string }) => t.id === id)
       if (trip) setTripName(trip.name)
     })
   }, [id, router])
@@ -288,7 +291,7 @@ export default function TripDetailPage() {
           ].map(t => (
             <button
               key={t.key}
-              onClick={() => setTab(t.key as any)}
+              onClick={() => setTab(t.key as "add" | "list" | "schedule")}
               className={`px-4 py-2 text-sm font-medium rounded-t-xl transition ${
                 tab === t.key
                   ? "bg-blue-50 text-blue-600 border-b-2 border-blue-600"
@@ -307,7 +310,7 @@ export default function TripDetailPage() {
               {pois.length === 0 ? (
                 <div className="text-center py-16">
                   <div className="text-4xl mb-3">📍</div>
-                  <p className="text-gray-400 text-sm">还没有地点，点击"添加地点"开始收藏</p>
+                  <p className="text-gray-400 text-sm">还没有地点，点击&quot;添加地点&quot;开始收藏</p>
                 </div>
               ) : (
                 <>
