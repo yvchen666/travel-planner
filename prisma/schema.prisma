@@ -1,0 +1,61 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  trips     Trip[]
+}
+
+model Trip {
+  id        String     @id @default(cuid())
+  name      String
+  userId    String
+  user      User       @relation(fields: [userId], references: [id])
+  createdAt DateTime   @default(now())
+  tripPois  TripPoi[]
+  routes    Route[]
+}
+
+model Poi {
+  id           String    @id @default(cuid())
+  name         String
+  type         String    // 景点 | 美食 | 住宿
+  lat          Float
+  lng          Float
+  address      String?
+  sourceUrl    String?
+  sourceText   String?
+  collectCount Int       @default(1)
+  createdAt    DateTime  @default(now())
+  tripPois     TripPoi[]
+}
+
+model TripPoi {
+  id     String @id @default(cuid())
+  tripId String
+  poiId  String
+  order  Int    @default(0)
+  trip   Trip   @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  poi    Poi    @relation(fields: [poiId], references: [id])
+
+  @@unique([tripId, poiId])
+}
+
+model Route {
+  id       String   @id @default(cuid())
+  tripId   String
+  poiOrder Json     // 按顺序排列的 POI id 数组
+  useCount Int      @default(1)
+  createdAt DateTime @default(now())
+  trip     Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+}
